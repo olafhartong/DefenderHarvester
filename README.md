@@ -1,4 +1,4 @@
-[![license](https://img.shields.io/github/license/olafhartong/defenderharvester.svg?style=flat-square)](https://github.com/olafhartong/sysmon-modular/blob/master/license.md)
+[![license](https://img.shields.io/github/license/olafhartong/defenderharvester.svg?style=flat-square)](https://github.com/olafhartong/defenderharvester/blob/master/license.md)
 ![Maintenance](https://img.shields.io/maintenance/yes/2023.svg?style=flat-square)
 [![Twitter](https://img.shields.io/twitter/follow/olafhartong.svg?style=social&label=Follow)](https://twitter.com/olafhartong)
 

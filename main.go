@@ -52,7 +52,7 @@ func main() {
 	fmt.Println("   ?+';@@@@^^@@@@@@^^@@@+'+?")
 	fmt.Println("      ;@@@'  '@@@@'  '@@@+")
 	fmt.Println("       ;#@@@-@@@@@@-@@@%;	DefenderHarvester v0.9 - by Olaf Hartong")
-	fmt.Println("        .?@@@@----@@@@?.	 ↳ Harvests interesting info from MDE/M356D, of which")
+	fmt.Println("        .?@@@@----@@@@?.	 ↳ Collects interesting events from MDE/M365D, of which")
 	fmt.Println("          '+?%@@@@%?+'		   most are sadly only available on the ServiceAPI :|")
 	fmt.Println("              .;;.")
 	fmt.Println("")

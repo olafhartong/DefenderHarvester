@@ -10,7 +10,7 @@ This tools tries to expose a lot of telemetry that is not easily accessible in a
 
 Sadly this not available over the publicly supported API, so this tool uses the internal API to get the data. Also the Unified Audit logs does not have this data, so this tool is the only way to get it. (that I am aware of)
 
-More information in this blog post; [Microsoft Defender for Endpoint Internals 0x05 - Telemetry for sensitive actions](https://medium.com)
+More information in this blog post; [Microsoft Defender for Endpoint Internals 0x05 - Telemetry for sensitive actions](https://medium.com/@olafhartong)
 
 **NOTE:**
 All data is collected from the MDE Service API, and is not supported by Microsoft. Use at your own risk.

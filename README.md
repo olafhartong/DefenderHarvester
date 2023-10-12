@@ -60,7 +60,7 @@ Usage of ./defenderharvester:
   -machineid string
     	set the MachineId to query the timeline for
   -schema
-    	enable writing the MDE schema to a file - will never write to Sentinel
+    	enable writing the MDE schema reference to a file - will never write to Sentinel
   -sentinel
     	enable sending to Sentinel
   -splunk

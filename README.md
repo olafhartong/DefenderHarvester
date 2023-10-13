@@ -52,7 +52,7 @@ Usage of ./defenderharvester:
   -files
     	enable writing to files
   -lookback int
-    	set the amount of hours to query from the applicable sources (default 1)
+    	set the number of hours to query from the applicable sources (default 1)
   -machineactions
     	enable querying the MachineActions / LiveResponse actions
   -machinegroups
@@ -66,7 +66,7 @@ Usage of ./defenderharvester:
   -splunk
     	enable sending to Splunk
   -timeline
-    	gather the timeline for a MachineId (requires -machineid and -lookback)
+    	gather the Timeline for a MachineId (requires -machineid and -lookback)
 ```
 
 ## Get the MDE Schema reference in JSON

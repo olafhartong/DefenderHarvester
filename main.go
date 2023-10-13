@@ -28,12 +28,12 @@ func main() {
 	var machineGroups bool
 	var connectedApps bool
 	var executedQueries bool
-	flag.IntVar(&lookback, "lookback", 1, "set the amount of hours to query from the applicable sources")
+	flag.IntVar(&lookback, "lookback", 1, "set the number of hours to query from the applicable sources")
 	flag.BoolVar(&sentinel, "sentinel", false, "enable sending to Sentinel")
 	flag.BoolVar(&splunk, "splunk", false, "enable sending to Splunk")
 	flag.BoolVar(&files, "files", false, "enable writing to files")
-	flag.BoolVar(&schema, "schema", false, "enable writing the MDE schema reference to a file - will never write to Sentinel")
-	flag.BoolVar(&timeline, "timeline", false, "gather the timeline for a MachineId (requires -machineid and -lookback)")
+	flag.BoolVar(&schema, "schema", false, "write the MDE schema reference to a file - will never write to Sentinel")
+	flag.BoolVar(&timeline, "timeline", false, "gather the Timeline for a MachineId (requires -machineid and -lookback)")
 	flag.StringVar(&machineID, "machineid", "", "set the MachineId to query the timeline for")
 	flag.BoolVar(&machineActions, "machineactions", false, "enable querying the MachineActions / LiveResponse actions")
 	flag.BoolVar(&customDetections, "customdetections", false, "enable querying the Custom Detection state")

@@ -17,7 +17,7 @@ type TimelineData struct {
 	Next  string        `json:"Next"`
 }
 
-func GetTimelineData(accessToken string, endpoint string, queryParams string, sentinel bool, table string, files bool, from string, splunk bool) (*TimelineData, error) {
+func GetTimelineData(accessToken string, endpoint string, queryParams string, sentinel bool, table string, files bool, from string, splunk bool, debug bool) (*TimelineData, error) {
 	resource := "https://wdatpprd-weu.securitycenter.windows.com"
 	url := resource + endpoint + queryParams
 
@@ -62,10 +62,13 @@ func GetTimelineData(accessToken string, endpoint string, queryParams string, se
 			log.Printf("Done, retrieved %d events\n", len(timelineData.Items))
 			break
 		}
-
 		url = resource + "/api/detection/experience/timeline" + tempData.Prev
 		// fmt.Println("retrieving next from > ", url)
 		log.Printf("Running, retrieved %d events\n", len(timelineData.Items))
+	}
+
+	if debug {
+		fmt.Printf("%+v\n", timelineData)
 	}
 
 	if files {

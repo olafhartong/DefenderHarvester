@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -20,7 +21,7 @@ type MachineGroups struct {
 	Items []interface{} `json:"items"`
 }
 
-func GetDataFromMDE(accessToken string, endpoint string, queryParams string, sentinel bool, table string, files bool, splunk bool) error {
+func GetDataFromMDE(accessToken string, endpoint string, queryParams string, sentinel bool, table string, files bool, splunk bool, debug bool) error {
 	resource := "https://wdatpprd-weu.securitycenter.windows.com"
 	url := resource + endpoint + queryParams
 
@@ -49,6 +50,16 @@ func GetDataFromMDE(accessToken string, endpoint string, queryParams string, sen
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if debug {
+		var prettyJSON bytes.Buffer
+		error := json.Indent(&prettyJSON, body, "", "\t")
+		if error != nil {
+			log.Println("JSON parse error: ", error)
+			return error
+		}
+		fmt.Printf("%s\n", prettyJSON.Bytes())
 	}
 
 	if files {
@@ -137,7 +148,7 @@ func GetDataFromMDE(accessToken string, endpoint string, queryParams string, sen
 	return nil
 }
 
-func GetDataFromMDEAPI(accessToken string, endpoint string, queryParams string, sentinel bool, table string, files bool, splunk bool) error {
+func GetDataFromMDEAPI(accessToken string, endpoint string, queryParams string, sentinel bool, table string, files bool, splunk bool, debug bool) error {
 	resource := "https://api-eu.securitycenter.windows.com"
 	url := resource + endpoint + queryParams
 
@@ -166,6 +177,16 @@ func GetDataFromMDEAPI(accessToken string, endpoint string, queryParams string, 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if debug {
+		var prettyJSON bytes.Buffer
+		error := json.Indent(&prettyJSON, body, "", "\t")
+		if error != nil {
+			log.Println("JSON parse error: ", error)
+			return error
+		}
+		fmt.Printf("%s\n", prettyJSON.Bytes())
 	}
 
 	if files {

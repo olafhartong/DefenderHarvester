@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func PostDataToMDE(accessToken string, endpoint string, requestBody []byte, sentinel bool, table string, files bool, splunk bool) error {
+func PostDataToMDE(accessToken string, endpoint string, requestBody []byte, sentinel bool, table string, files bool, splunk bool, debug bool) error {
 	resource := "https://wdatpprd-weu.securitycenter.windows.com"
 	url := resource + endpoint
 
@@ -41,6 +41,16 @@ func PostDataToMDE(accessToken string, endpoint string, requestBody []byte, sent
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if debug {
+		var prettyJSON bytes.Buffer
+		error := json.Indent(&prettyJSON, body, "", "\t")
+		if error != nil {
+			log.Println("JSON parse error: ", error)
+			return error
+		}
+		fmt.Printf("%s\n", prettyJSON.Bytes())
 	}
 
 	if files {

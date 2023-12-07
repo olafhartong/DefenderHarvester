@@ -17,8 +17,8 @@ type TimelineData struct {
 	Next  string        `json:"Next"`
 }
 
-func GetTimelineData(accessToken string, endpoint string, queryParams string, sentinel bool, table string, files bool, from string, splunk bool, debug bool) (*TimelineData, error) {
-	resource := "https://wdatpprd-weu.securitycenter.windows.com"
+func GetTimelineData(accessToken string, endpoint string, queryParams string, sentinel bool, table string, files bool, from string, splunk bool, debug bool, location string) (*TimelineData, error) {
+	resource := fmt.Sprintf("https://%s.securitycenter.windows.com", location)
 	url := resource + endpoint + queryParams
 
 	timelineData := &TimelineData{}
@@ -41,8 +41,14 @@ func GetTimelineData(accessToken string, endpoint string, queryParams string, se
 		}
 		defer resp.Body.Close()
 
+		if debug {
+			log.Println("retrieving from > ", url)
+			log.Println("response status > ", resp.StatusCode)
+		}
+
 		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("request failed with status code %d", resp.StatusCode)
+			fmt.Println("request failed with status code %d", resp.StatusCode)
+			return nil, err
 		}
 
 		body, err := io.ReadAll(resp.Body)

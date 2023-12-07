@@ -16,6 +16,7 @@ import (
 
 func main() {
 	var lookback int
+	var location string
 	var sentinel bool
 	var splunk bool
 	var files bool
@@ -30,6 +31,7 @@ func main() {
 	var executedQueries bool
 	var debug bool
 	flag.IntVar(&lookback, "lookback", 1, "set the number of hours to query from the applicable sources")
+	flag.StringVar(&location, "location", "wdatpprd-weu", "set the Azure region to query, default is wdatpprd-weu. Get yours via the dev tools in your browser, see the blog in the README.")
 	flag.BoolVar(&sentinel, "sentinel", false, "enable sending to Sentinel")
 	flag.BoolVar(&splunk, "splunk", false, "enable sending to Splunk")
 	flag.BoolVar(&files, "files", false, "enable writing to files")
@@ -53,7 +55,7 @@ func main() {
 	fmt.Println("  '?@@@@@@#%%%%%%%%%%#@@@@@@?'")
 	fmt.Println("   ?+';@@@@^^@@@@@@^^@@@+'+?")
 	fmt.Println("      ;@@@'  '@@@@'  '@@@+")
-	fmt.Println("       ;#@@@-@@@@@@-@@@%;	DefenderHarvester v0.9.2 - by Olaf Hartong")
+	fmt.Println("       ;#@@@-@@@@@@-@@@%;	DefenderHarvester v0.9.5 - by Olaf Hartong")
 	fmt.Println("        .?@@@@----@@@@?.	 ↳ Collects interesting events from MDE/M365D, of which")
 	fmt.Println("          '+?%@@@@%?+'		   most are sadly only available on the ServiceAPI :|")
 	fmt.Println("              .;;.")
@@ -68,7 +70,7 @@ func main() {
 		log.Println("Retrieving MDE schema reference ...")
 		schemaEndpoint := "/api/ine/huntingservice/schema"
 		schemaQueryParams := ""
-		cmd.GetDataFromMDE(token, schemaEndpoint, schemaQueryParams, false, "MdeSchemaReference", true, false, debug)
+		cmd.GetDataFromMDE(token, schemaEndpoint, schemaQueryParams, false, "MdeSchemaReference", true, false, debug, location)
 		return
 	}
 
@@ -86,7 +88,7 @@ func main() {
 		log.Printf("Depending on the lookback, this can take a while, get some %s", "☕")
 		TLEndpoint := fmt.Sprintf("/api/detection/experience/timeline/machines/%s/events/?machineId=%s&doNotUseCache=false&forceUseCache=false&fromDate=%s&pageSize=1000", machineID, machineID, fromURL)
 		TLQueryParams := ""
-		cmd.GetTimelineData(token, TLEndpoint, TLQueryParams, sentinel, "MdeTimeline", true, from, splunk, debug)
+		cmd.GetTimelineData(token, TLEndpoint, TLQueryParams, sentinel, "MdeTimeline", true, from, splunk, debug, location)
 		return
 	}
 
@@ -94,42 +96,42 @@ func main() {
 		log.Println("Retrieving Action Center History ...")
 		ACendpoint := "/api/autoir/actioncenterui/history-actions"
 		ACqueryParams := fmt.Sprintf("/?useMtpApi=true&fromDate=%s&toDate=%s&sortByField=eventTime&sortOrder=Descending", fromURL, nowURL)
-		cmd.GetDataFromMDE(token, ACendpoint, ACqueryParams, sentinel, "MdeMachineActions", files, splunk, debug)
+		cmd.GetDataFromMDE(token, ACendpoint, ACqueryParams, sentinel, "MdeMachineActions", files, splunk, debug, location)
 
 		log.Println("Retrieving Machine Actions ...")
 		MAEndpoint := "/api/machineactions?$filter=lastUpdateDateTimeUtc"
 		MAquery := fmt.Sprintf(" ge %s", from)
 		escapedQuery := url.QueryEscape(MAquery)
 		MAQueryParams := strings.ReplaceAll(escapedQuery, "+", "%20")
-		cmd.GetDataFromMDEAPI(token, MAEndpoint, MAQueryParams, sentinel, "MdeMachineActionsApi", files, splunk, debug)
+		cmd.GetDataFromMDEAPI(token, MAEndpoint, MAQueryParams, sentinel, "MdeMachineActionsApi", files, splunk, debug, location)
 	}
 
 	if customDetections {
 		log.Println("Retrieving Custom Detection state ...")
 		CDendpoint := "/api/ine/huntingservice/rules"
 		CDqueryParams := "?pageSize=1000"
-		cmd.GetDataFromMDE(token, CDendpoint, CDqueryParams, sentinel, "MdeCustomDetectionState", files, splunk, debug)
+		cmd.GetDataFromMDE(token, CDendpoint, CDqueryParams, sentinel, "MdeCustomDetectionState", files, splunk, debug, location)
 	}
 
 	if featureSettings {
 		log.Println("Retrieving Advanced Feature Settings ...")
 		tenantEndpoint := "/api/settings/GetAdvancedFeaturesSetting"
 		tenantQueryParams := ""
-		cmd.GetDataFromMDE(token, tenantEndpoint, tenantQueryParams, sentinel, "MdeAdvancedFeatureSettings", files, splunk, debug)
+		cmd.GetDataFromMDE(token, tenantEndpoint, tenantQueryParams, sentinel, "MdeAdvancedFeatureSettings", files, splunk, debug, location)
 	}
 
 	if machineGroups {
 		log.Println("Retrieving Machine Groups ...")
 		settingsEndpoint := "/rbac/machine_groups"
 		settingsQueryParams := ""
-		cmd.GetDataFromMDE(token, settingsEndpoint, settingsQueryParams, sentinel, "MdeMachineGroups", files, splunk, debug)
+		cmd.GetDataFromMDE(token, settingsEndpoint, settingsQueryParams, sentinel, "MdeMachineGroups", files, splunk, debug, location)
 	}
 
 	if connectedApps {
 		log.Println("Retrieving Connected App Statistics ...")
 		conAppsEndpoint := "/api/cloud/portal/apps/all"
 		conAppsQueryParams := ""
-		cmd.GetDataFromMDE(token, conAppsEndpoint, conAppsQueryParams, sentinel, "MdeConnectedAppStats", files, splunk, debug)
+		cmd.GetDataFromMDE(token, conAppsEndpoint, conAppsQueryParams, sentinel, "MdeConnectedAppStats", files, splunk, debug, location)
 	}
 
 	if executedQueries {
@@ -137,7 +139,7 @@ func main() {
 		ranQueriesEndpoint := "/api/ine/huntingservice/reports"
 		query := fmt.Sprintf(`{"startTime":"%s","endTime":"%s"}`, from, now)
 		ranQueriesQueryParams := []byte(query)
-		cmd.PostDataToMDE(token, ranQueriesEndpoint, ranQueriesQueryParams, sentinel, "MdeExecutedQueries", files, splunk, debug)
+		cmd.PostDataToMDE(token, ranQueriesEndpoint, ranQueriesQueryParams, sentinel, "MdeExecutedQueries", files, splunk, debug, location)
 	}
 
 }

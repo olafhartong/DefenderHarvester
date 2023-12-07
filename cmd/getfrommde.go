@@ -21,8 +21,8 @@ type MachineGroups struct {
 	Items []interface{} `json:"items"`
 }
 
-func GetDataFromMDE(accessToken string, endpoint string, queryParams string, sentinel bool, table string, files bool, splunk bool, debug bool) error {
-	resource := "https://wdatpprd-weu.securitycenter.windows.com"
+func GetDataFromMDE(accessToken string, endpoint string, queryParams string, sentinel bool, table string, files bool, splunk bool, debug bool, location string) error {
+	resource := fmt.Sprintf("https://%s.securitycenter.windows.com", location)
 	url := resource + endpoint + queryParams
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
@@ -44,7 +44,8 @@ func GetDataFromMDE(accessToken string, endpoint string, queryParams string, sen
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("request failed with status code %d", resp.StatusCode)
+		fmt.Println("request failed with status code %d", resp.StatusCode)
+		return nil
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -148,8 +149,8 @@ func GetDataFromMDE(accessToken string, endpoint string, queryParams string, sen
 	return nil
 }
 
-func GetDataFromMDEAPI(accessToken string, endpoint string, queryParams string, sentinel bool, table string, files bool, splunk bool, debug bool) error {
-	resource := "https://api-eu.securitycenter.windows.com"
+func GetDataFromMDEAPI(accessToken string, endpoint string, queryParams string, sentinel bool, table string, files bool, splunk bool, debug bool, location string) error {
+	resource := fmt.Sprintf("https://%s.securitycenter.windows.com", location)
 	url := resource + endpoint + queryParams
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
@@ -171,12 +172,14 @@ func GetDataFromMDEAPI(accessToken string, endpoint string, queryParams string, 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("request failed with status code %d", resp.StatusCode)
+		fmt.Println("request failed with status code %d", resp.StatusCode)
+		return nil
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("failed to read response body: %w", err)
+		fmt.Println("failed to read response body: %w", err)
+		return nil
 	}
 
 	if debug {

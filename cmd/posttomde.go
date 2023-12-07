@@ -12,8 +12,8 @@ import (
 	"time"
 )
 
-func PostDataToMDE(accessToken string, endpoint string, requestBody []byte, sentinel bool, table string, files bool, splunk bool, debug bool) error {
-	resource := "https://wdatpprd-weu.securitycenter.windows.com"
+func PostDataToMDE(accessToken string, endpoint string, requestBody []byte, sentinel bool, table string, files bool, splunk bool, debug bool, location string) error {
+	resource := fmt.Sprintf("https://%s.securitycenter.windows.com", location)
 	url := resource + endpoint
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, bytes.NewBuffer(requestBody))
@@ -35,7 +35,8 @@ func PostDataToMDE(accessToken string, endpoint string, requestBody []byte, sent
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("request failed with status code %d", resp.StatusCode)
+		fmt.Println("request failed with status code %d", resp.StatusCode)
+		return nil
 	}
 
 	body, err := io.ReadAll(resp.Body)

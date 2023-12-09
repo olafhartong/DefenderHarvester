@@ -25,6 +25,10 @@ func GetDataFromMDE(accessToken string, endpoint string, queryParams string, sen
 	resource := fmt.Sprintf("https://%s.securitycenter.windows.com", location)
 	url := resource + endpoint + queryParams
 
+	if debug {
+		log.Printf("Query data from: %s\n", url)
+	}
+
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
@@ -153,6 +157,10 @@ func GetDataFromMDEAPI(accessToken string, endpoint string, queryParams string, 
 	resource := fmt.Sprintf("https://%s.securitycenter.windows.com", location)
 	url := resource + endpoint + queryParams
 
+	if debug {
+		log.Printf("Query data from: %s\n", url)
+	}
+
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
@@ -178,8 +186,7 @@ func GetDataFromMDEAPI(accessToken string, endpoint string, queryParams string, 
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("failed to read response body: %w", err)
-		return nil
+		return fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	if debug {

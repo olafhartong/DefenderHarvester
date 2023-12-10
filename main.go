@@ -70,7 +70,8 @@ func main() {
 		log.Println("Retrieving MDE schema reference ...")
 		schemaEndpoint := "/api/ine/huntingservice/schema"
 		schemaQueryParams := ""
-		cmd.GetDataFromMDE(token, schemaEndpoint, schemaQueryParams, false, "MdeSchemaReference", true, false, debug, location)
+		hostname := getM365XDRDomainName(location, schemaEndpoint)
+		cmd.GetDataFromMDE(token, schemaEndpoint, schemaQueryParams, false, "MdeSchemaReference", true, false, debug, hostname)
 		return
 	}
 
@@ -88,7 +89,8 @@ func main() {
 		log.Printf("Depending on the lookback, this can take a while, get some %s", "☕")
 		TLEndpoint := fmt.Sprintf("/api/detection/experience/timeline/machines/%s/events/?machineId=%s&doNotUseCache=false&forceUseCache=false&fromDate=%s&pageSize=1000", machineID, machineID, fromURL)
 		TLQueryParams := ""
-		cmd.GetTimelineData(token, TLEndpoint, TLQueryParams, sentinel, "MdeTimeline", true, from, splunk, debug, location)
+		hostname := getM365XDRDomainName(location, TLEndpoint)
+		cmd.GetTimelineData(token, TLEndpoint, TLQueryParams, sentinel, "MdeTimeline", true, from, splunk, debug, hostname)
 		return
 	}
 
@@ -96,42 +98,49 @@ func main() {
 		log.Println("Retrieving Action Center History ...")
 		ACendpoint := "/api/autoir/actioncenterui/history-actions"
 		ACqueryParams := fmt.Sprintf("/?useMtpApi=true&fromDate=%s&toDate=%s&sortByField=eventTime&sortOrder=Descending", fromURL, nowURL)
-		cmd.GetDataFromMDE(token, ACendpoint, ACqueryParams, sentinel, "MdeMachineActions", files, splunk, debug, location)
+		hostname := getM365XDRDomainName(location, ACendpoint)
+		cmd.GetDataFromMDE(token, ACendpoint, ACqueryParams, sentinel, "MdeMachineActions", files, splunk, debug, hostname)
 
 		log.Println("Retrieving Machine Actions ...")
 		MAEndpoint := "/api/machineactions?$filter=lastUpdateDateTimeUtc"
 		MAquery := fmt.Sprintf(" ge %s", from)
 		escapedQuery := url.QueryEscape(MAquery)
 		MAQueryParams := strings.ReplaceAll(escapedQuery, "+", "%20")
-		cmd.GetDataFromMDEAPI(token, MAEndpoint, MAQueryParams, sentinel, "MdeMachineActionsApi", files, splunk, debug, location)
+		hostname = getM365XDRDomainName(location, MAEndpoint)
+		cmd.GetDataFromMDEAPI(token, MAEndpoint, MAQueryParams, sentinel, "MdeMachineActionsApi", files, splunk, debug, hostname)
 	}
 
 	if customDetections {
 		log.Println("Retrieving Custom Detection state ...")
 		CDendpoint := "/api/ine/huntingservice/rules"
 		CDqueryParams := "?pageSize=1000"
-		cmd.GetDataFromMDE(token, CDendpoint, CDqueryParams, sentinel, "MdeCustomDetectionState", files, splunk, debug, location)
+		hostname := getM365XDRDomainName(location, CDendpoint)
+		cmd.GetDataFromMDE(token, CDendpoint, CDqueryParams, sentinel, "MdeCustomDetectionState", files, splunk, debug, hostname)
 	}
 
 	if featureSettings {
 		log.Println("Retrieving Advanced Feature Settings ...")
+		// hostname default: wdatpprd-eu3.securitycenter.windows.com
 		tenantEndpoint := "/api/settings/GetAdvancedFeaturesSetting"
 		tenantQueryParams := ""
-		cmd.GetDataFromMDE(token, tenantEndpoint, tenantQueryParams, sentinel, "MdeAdvancedFeatureSettings", files, splunk, debug, location)
+		hostname := getM365XDRDomainName(location, tenantEndpoint)
+		cmd.GetDataFromMDE(token, tenantEndpoint, tenantQueryParams, sentinel, "MdeAdvancedFeatureSettings", files, splunk, debug, hostname)
 	}
 
 	if machineGroups {
 		log.Println("Retrieving Machine Groups ...")
 		settingsEndpoint := "/rbac/machine_groups"
 		settingsQueryParams := ""
-		cmd.GetDataFromMDE(token, settingsEndpoint, settingsQueryParams, sentinel, "MdeMachineGroups", files, splunk, debug, location)
+		hostname := getM365XDRDomainName(location, settingsEndpoint)
+		cmd.GetDataFromMDE(token, settingsEndpoint, settingsQueryParams, sentinel, "MdeMachineGroups", files, splunk, debug, hostname)
 	}
 
 	if connectedApps {
 		log.Println("Retrieving Connected App Statistics ...")
 		conAppsEndpoint := "/api/cloud/portal/apps/all"
 		conAppsQueryParams := ""
-		cmd.GetDataFromMDE(token, conAppsEndpoint, conAppsQueryParams, sentinel, "MdeConnectedAppStats", files, splunk, debug, location)
+		hostname := getM365XDRDomainName(location, conAppsEndpoint)
+		cmd.GetDataFromMDE(token, conAppsEndpoint, conAppsQueryParams, sentinel, "MdeConnectedAppStats", files, splunk, debug, hostname)
 	}
 
 	if executedQueries {
@@ -139,7 +148,8 @@ func main() {
 		ranQueriesEndpoint := "/api/ine/huntingservice/reports"
 		query := fmt.Sprintf(`{"startTime":"%s","endTime":"%s"}`, from, now)
 		ranQueriesQueryParams := []byte(query)
-		cmd.PostDataToMDE(token, ranQueriesEndpoint, ranQueriesQueryParams, sentinel, "MdeExecutedQueries", files, splunk, debug, location)
+		hostname := getM365XDRDomainName(location, ranQueriesEndpoint)
+		cmd.PostDataToMDE(token, ranQueriesEndpoint, ranQueriesQueryParams, sentinel, "MdeExecutedQueries", files, splunk, debug, hostname)
 	}
 
 }
@@ -157,4 +167,50 @@ func getToken() (string, error) {
 		return "", fmt.Errorf("failed to get token: %w", err)
 	}
 	return token.Token, nil
+}
+
+func getM365XDRDomainName(location string, url string) string {
+	if strings.Contains(location, "wdatpprd-weu3") {
+		if url == "/api/dataexportsettings" || strings.Contains(url, "/api/machineactions") {
+			return "api-eu"
+		} else if url == "/api/ine/alertsapiservice/workloads/disabled" {
+			return "m365duseprd-weu3"
+		} else if url == "/api/settings/GetAdvancedFeaturesSetting" {
+			return "wdatpprd-eu3"
+		} else {
+			return location
+		}
+	} else if strings.Contains(location, "wdatpprd-weu") {
+		if url == "/api/dataexportsettings" || strings.Contains(url, "/api/machineactions") {
+			return "api-eu"
+		} else if url == "/api/ine/alertsapiservice/workloads/disabled" {
+			return "m365duseprd-weu"
+		} else if url == "/api/settings/GetAdvancedFeaturesSetting" {
+			return "wdatpprd-eu"
+		} else {
+			return location
+		}
+	} else if strings.Contains(location, "wdatpprd-eus3") {
+		if url == "/api/dataexportsettings" || strings.Contains(url, "/api/machineactions") {
+			return "api-us"
+		} else if url == "/api/ine/alertsapiservice/workloads/disabled" {
+			return "m365duseprd-eus3"
+		} else if url == "/api/settings/GetAdvancedFeaturesSetting" {
+			return "wdatpprd-us3"
+		} else {
+			return location
+		}
+	} else if strings.Contains(location, "wdatpprd-eus") {
+		if url == "/api/dataexportsettings" || strings.Contains(url, "/api/machineactions") {
+			return "api-us"
+		} else if url == "/api/ine/alertsapiservice/workloads/disabled" {
+			return "m365duseprd-eus"
+		} else if url == "/api/settings/GetAdvancedFeaturesSetting" {
+			return "wdatpprd-us"
+		} else {
+			return location
+		}
+	} else {
+		return location
+	}
 }

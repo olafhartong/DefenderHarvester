@@ -29,6 +29,8 @@ func main() {
 	var machineGroups bool
 	var connectedApps bool
 	var executedQueries bool
+	var alertServiceSettings bool
+	var dataExportSettings bool
 	var debug bool
 	flag.IntVar(&lookback, "lookback", 1, "set the number of hours to query from the applicable sources")
 	flag.StringVar(&location, "location", "wdatpprd-weu", "set the Azure region to query, default is wdatpprd-weu. Get yours via the dev tools in your browser, see the blog in the README.")
@@ -44,6 +46,8 @@ func main() {
 	flag.BoolVar(&machineGroups, "machinegroups", false, "enable querying the Machine Groups")
 	flag.BoolVar(&connectedApps, "connectedapps", false, "enable querying the Connected App Statistics")
 	flag.BoolVar(&executedQueries, "executedqueries", false, "enable querying the Executed Queries")
+	flag.BoolVar(&alertServiceSettings, "alertservicesettings", false, "enable querying the M365 XDR Alert Service Settings")
+	flag.BoolVar(&dataExportSettings, "dataexportsettings", false, "enable querying the M365 XDR Data Export Settings")
 	flag.BoolVar(&debug, "debug", false, "Provide debugging output")
 	flag.Parse()
 
@@ -152,6 +156,23 @@ func main() {
 		cmd.PostDataToMDE(token, ranQueriesEndpoint, ranQueriesQueryParams, sentinel, "MdeExecutedQueries", files, splunk, debug, hostname)
 	}
 
+	if alertServiceSettings {
+		log.Println("Retrieving M365 XDR Alert Service Settings ...")
+		// hostname default: m365duseprd-weu3.securitycenter.windows.com
+		alertServiceSettingsEndpoint := "/api/ine/alertsapiservice/workloads/disabled"
+		alertServiceSettingsQueryParams := "?includeDetails=true"
+		hostname := getM365XDRDomainName(location, alertServiceSettingsEndpoint)
+		cmd.GetDataFromMDEAPI(token, alertServiceSettingsEndpoint, alertServiceSettingsQueryParams, sentinel, "M365AlertServiceSettings", files, splunk, debug, hostname)
+	}
+
+	if dataExportSettings {
+		log.Println("Retrieving Data Export Settings ...")
+		// location default: api-eu.securitycenter.windows.com
+		dataExportSettingsEndpoint := "/api/dataexportsettings"
+		dataExportSettingsQueryParams := ""
+		hostname := getM365XDRDomainName(location, dataExportSettingsEndpoint)
+		cmd.GetDataFromMDEAPI(token, dataExportSettingsEndpoint, dataExportSettingsQueryParams, sentinel, "M365DataExportSettings", files, splunk, debug, hostname)
+	}
 }
 
 func getToken() (string, error) {

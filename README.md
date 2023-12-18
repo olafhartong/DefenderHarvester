@@ -40,33 +40,43 @@ export SplunkToken=<hec token>
 ```
 
 ```
-Usage of ./defenderharvester:
+Usage of C:\Users\fabia\git\DefenderHarvester\defenderharvester.exe:
+  -accesstoken string
+        bring your own access token
+  -alertservicesettings
+        enable querying the M365 XDR Alert Service Settings
   -connectedapps
-    	enable querying the Connected App Statistics
+        enable querying the Connected App Statistics
   -customdetections
-    	enable querying the Custom Detection state
+        enable querying the Custom Detection state
+  -dataexportsettings
+        enable querying the M365 XDR Data Export Settings
+  -debug
+        Provide debugging output
   -executedqueries
-    	enable querying the Executed Queries
+        enable querying the Executed Queries
   -featuresettings
-    	enable querying the Advanced Feature Settings
+        enable querying the Advanced Feature Settings
   -files
-    	enable writing to files
+        enable writing to files
+  -location string
+        set the Azure region to query, default is wdatpprd-weu. Get yours via the dev tools in your browser, see the blog in the README. (default "wdatpprd-weu")
   -lookback int
-    	set the number of hours to query from the applicable sources (default 1)
+        set the number of hours to query from the applicable sources (default 1)
   -machineactions
-    	enable querying the MachineActions / LiveResponse actions
+        enable querying the MachineActions / LiveResponse actions
   -machinegroups
-    	enable querying the Machine Groups
+        enable querying the Machine Groups
   -machineid string
-    	set the MachineId to query the timeline for
+        set the MachineId to query the timeline for
   -schema
-    	enable writing the MDE schema reference to a file - will never write to Sentinel
+        write the MDE schema reference to a file - will never write to Sentinel
   -sentinel
-    	enable sending to Sentinel
+        enable sending to Sentinel
   -splunk
-    	enable sending to Splunk
+        enable sending to Splunk
   -timeline
-    	gather the Timeline for a MachineId (requires -machineid and -lookback)
+        gather the Timeline for a MachineId (requires -machineid and -lookback)
 ```
 
 ## Get the MDE Schema reference in JSON
@@ -101,4 +111,14 @@ You can get the timeline for a MachineId with the `-timeline` flag, this require
 This will be collected into a file and optionally can be sent to Sentinel with the `-sentinel` flag, where it will end up in the MdeTimeline table.
 ```bash
 ./defenderharvester -lookback 1 -machineid <machineid> -timeline -sentinel
+```
+
+## Comply with device filtered Conditional Access Policy
+
+```powershell
+# Use TokenTacticsV2 to get a 24h valid access token
+Get-AzureToken -Client Custom -ClientID 04b07795-8ddb-461a-bbee-02f9e1bf7b46 -Scope "https://securitycenter.microsoft.com/mtp/.default" -UseCAE
+
+./defenderharvester.exe -location wdatpprd-weu3 -debug -accesstoken $response.access_token -schema
+
 ```

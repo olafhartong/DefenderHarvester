@@ -32,6 +32,8 @@ func main() {
 	var alertServiceSettings bool
 	var dataExportSettings bool
 	var debug bool
+	var accessToken string
+	var token string
 	flag.IntVar(&lookback, "lookback", 1, "set the number of hours to query from the applicable sources")
 	flag.StringVar(&location, "location", "wdatpprd-weu", "set the Azure region to query, default is wdatpprd-weu. Get yours via the dev tools in your browser, see the blog in the README.")
 	flag.BoolVar(&sentinel, "sentinel", false, "enable sending to Sentinel")
@@ -48,6 +50,7 @@ func main() {
 	flag.BoolVar(&executedQueries, "executedqueries", false, "enable querying the Executed Queries")
 	flag.BoolVar(&alertServiceSettings, "alertservicesettings", false, "enable querying the M365 XDR Alert Service Settings")
 	flag.BoolVar(&dataExportSettings, "dataexportsettings", false, "enable querying the M365 XDR Data Export Settings")
+	flag.StringVar(&accessToken, "accesstoken", "", "bring your own access token")
 	flag.BoolVar(&debug, "debug", false, "Provide debugging output")
 	flag.Parse()
 
@@ -65,9 +68,16 @@ func main() {
 	fmt.Println("              .;;.")
 	fmt.Println("")
 
-	token, err := getToken()
-	if err != nil {
-		panic(err)
+	if accessToken != "" {
+		log.Println("Using provided access token ...")
+		token = accessToken
+	} else {
+		log.Println("Getting access token ...")
+		accessToken, err := getToken()
+		if err != nil {
+			panic(err)
+		}
+		token = accessToken
 	}
 
 	if schema {

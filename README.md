@@ -15,10 +15,17 @@ More information in this blog post; [Microsoft Defender for Endpoint Internals 0
 **NOTE:**
 All data is collected from the MDE Service API, and is not supported by Microsoft. Use at your own risk.
 
-# Getting Started
+# Installation
 
 Make sure to have the following installed:
 - [Azure Cli](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
+
+Defender Harvester is published through [releases](https://github.com/olafhartong/DefenderHarvester/releases/latest) or can be installed through Go:
+```bash
+go install github.com/olafhartong/defenderharvester@latest
+```
+
+# Getting Started
 
 Log in to Azure with an account that has access to M365D / MDE:
 ```bash

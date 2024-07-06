@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"defenderharvester/cmd"
 	"flag"
 	"fmt"
+	"github.com/olafhartong/defenderharvester/cmd"
 	"log"
 	"net/url"
 	"strings"

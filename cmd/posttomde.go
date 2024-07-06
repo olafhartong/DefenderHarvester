@@ -36,8 +36,7 @@ func PostDataToMDE(accessToken string, endpoint string, requestBody []byte, sent
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Println("request failed with status code %d", resp.StatusCode)
-		return nil
+		return fmt.Errorf("request failed with status code %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -76,8 +75,6 @@ func PostDataToMDE(accessToken string, endpoint string, requestBody []byte, sent
 		if err != nil {
 			return fmt.Errorf("failed to write response body to Sentinel: %w", err)
 		}
-	} else {
-		return nil
 	}
 
 	return nil

@@ -49,8 +49,7 @@ func GetDataFromMDE(accessToken string, endpoint string, queryParams string, sen
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Println("request failed with status code %d", resp.StatusCode)
-		return nil
+		return fmt.Errorf("request failed with status code %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -181,8 +180,7 @@ func GetDataFromMDEAPI(accessToken string, endpoint string, queryParams string, 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Println("request failed with status code %d", resp.StatusCode)
-		return nil
+		return fmt.Errorf("request failed with status code %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -192,10 +190,10 @@ func GetDataFromMDEAPI(accessToken string, endpoint string, queryParams string, 
 
 	if debug {
 		var prettyJSON bytes.Buffer
-		error := json.Indent(&prettyJSON, body, "", "\t")
-		if error != nil {
-			log.Println("JSON parse error: ", error)
-			return error
+		err = json.Indent(&prettyJSON, body, "", "\t")
+		if err != nil {
+			log.Println("JSON parse error: ", err)
+			return err
 		}
 		fmt.Printf("%s\n", prettyJSON.Bytes())
 	}
@@ -231,8 +229,6 @@ func GetDataFromMDEAPI(accessToken string, endpoint string, queryParams string, 
 		if err != nil {
 			return fmt.Errorf("failed to write response body to Sentinel: %w", err)
 		}
-	} else {
-		return nil
 	}
 
 	return nil

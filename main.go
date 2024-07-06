@@ -75,7 +75,7 @@ func main() {
 		log.Println("Getting access token ...")
 		accessToken, err := getToken()
 		if err != nil {
-			panic(err)
+			log.Fatalln(err)
 		}
 		token = accessToken
 	}
@@ -85,7 +85,9 @@ func main() {
 		schemaEndpoint := "/api/ine/huntingservice/schema"
 		schemaQueryParams := ""
 		hostname := getM365XDRDomainName(location, schemaEndpoint)
-		cmd.GetDataFromMDE(token, schemaEndpoint, schemaQueryParams, false, "MdeSchemaReference", true, false, debug, hostname)
+		if err := cmd.GetDataFromMDE(token, schemaEndpoint, schemaQueryParams, false, "MdeSchemaReference", true, false, debug, hostname); err != nil {
+			log.Fatalln(err)
+		}
 		return
 	}
 
@@ -104,7 +106,9 @@ func main() {
 		TLEndpoint := fmt.Sprintf("/api/detection/experience/timeline/machines/%s/events/?machineId=%s&doNotUseCache=false&forceUseCache=false&fromDate=%s&pageSize=1000", machineID, machineID, fromURL)
 		TLQueryParams := ""
 		hostname := getM365XDRDomainName(location, TLEndpoint)
-		cmd.GetTimelineData(token, TLEndpoint, TLQueryParams, sentinel, "MdeTimeline", true, from, splunk, debug, hostname)
+		if _, err := cmd.GetTimelineData(token, TLEndpoint, TLQueryParams, sentinel, "MdeTimeline", true, from, splunk, debug, hostname); err != nil {
+			log.Fatalln(err)
+		}
 		return
 	}
 
@@ -113,7 +117,9 @@ func main() {
 		ACendpoint := "/api/autoir/actioncenterui/history-actions"
 		ACqueryParams := fmt.Sprintf("/?useMtpApi=true&fromDate=%s&toDate=%s&sortByField=eventTime&sortOrder=Descending", fromURL, nowURL)
 		hostname := getM365XDRDomainName(location, ACendpoint)
-		cmd.GetDataFromMDE(token, ACendpoint, ACqueryParams, sentinel, "MdeMachineActions", files, splunk, debug, hostname)
+		if err := cmd.GetDataFromMDE(token, ACendpoint, ACqueryParams, sentinel, "MdeMachineActions", files, splunk, debug, hostname); err != nil {
+			log.Fatalln(err)
+		}
 
 		log.Println("Retrieving Machine Actions ...")
 		MAEndpoint := "/api/machineactions?$filter=lastUpdateDateTimeUtc"
@@ -121,7 +127,9 @@ func main() {
 		escapedQuery := url.QueryEscape(MAquery)
 		MAQueryParams := strings.ReplaceAll(escapedQuery, "+", "%20")
 		hostname = getM365XDRDomainName(location, MAEndpoint)
-		cmd.GetDataFromMDEAPI(token, MAEndpoint, MAQueryParams, sentinel, "MdeMachineActionsApi", files, splunk, debug, hostname)
+		if err := cmd.GetDataFromMDEAPI(token, MAEndpoint, MAQueryParams, sentinel, "MdeMachineActionsApi", files, splunk, debug, hostname); err != nil {
+			log.Fatalln(err)
+		}
 	}
 
 	if customDetections {
@@ -129,7 +137,9 @@ func main() {
 		CDendpoint := "/api/ine/huntingservice/rules"
 		CDqueryParams := "?pageSize=1000"
 		hostname := getM365XDRDomainName(location, CDendpoint)
-		cmd.GetDataFromMDE(token, CDendpoint, CDqueryParams, sentinel, "MdeCustomDetectionState", files, splunk, debug, hostname)
+		if err := cmd.GetDataFromMDE(token, CDendpoint, CDqueryParams, sentinel, "MdeCustomDetectionState", files, splunk, debug, hostname); err != nil {
+			log.Fatalln(err)
+		}
 	}
 
 	if featureSettings {
@@ -138,7 +148,9 @@ func main() {
 		tenantEndpoint := "/api/settings/GetAdvancedFeaturesSetting"
 		tenantQueryParams := ""
 		hostname := getM365XDRDomainName(location, tenantEndpoint)
-		cmd.GetDataFromMDE(token, tenantEndpoint, tenantQueryParams, sentinel, "MdeAdvancedFeatureSettings", files, splunk, debug, hostname)
+		if err := cmd.GetDataFromMDE(token, tenantEndpoint, tenantQueryParams, sentinel, "MdeAdvancedFeatureSettings", files, splunk, debug, hostname); err != nil {
+			log.Fatalln(err)
+		}
 	}
 
 	if machineGroups {
@@ -146,7 +158,9 @@ func main() {
 		settingsEndpoint := "/rbac/machine_groups"
 		settingsQueryParams := ""
 		hostname := getM365XDRDomainName(location, settingsEndpoint)
-		cmd.GetDataFromMDE(token, settingsEndpoint, settingsQueryParams, sentinel, "MdeMachineGroups", files, splunk, debug, hostname)
+		if err := cmd.GetDataFromMDE(token, settingsEndpoint, settingsQueryParams, sentinel, "MdeMachineGroups", files, splunk, debug, hostname); err != nil {
+			log.Fatalln(err)
+		}
 	}
 
 	if connectedApps {
@@ -154,7 +168,9 @@ func main() {
 		conAppsEndpoint := "/api/cloud/portal/apps/all"
 		conAppsQueryParams := ""
 		hostname := getM365XDRDomainName(location, conAppsEndpoint)
-		cmd.GetDataFromMDE(token, conAppsEndpoint, conAppsQueryParams, sentinel, "MdeConnectedAppStats", files, splunk, debug, hostname)
+		if err := cmd.GetDataFromMDE(token, conAppsEndpoint, conAppsQueryParams, sentinel, "MdeConnectedAppStats", files, splunk, debug, hostname); err != nil {
+			log.Fatalln(err)
+		}
 	}
 
 	if executedQueries {
@@ -163,7 +179,9 @@ func main() {
 		query := fmt.Sprintf(`{"startTime":"%s","endTime":"%s"}`, from, now)
 		ranQueriesQueryParams := []byte(query)
 		hostname := getM365XDRDomainName(location, ranQueriesEndpoint)
-		cmd.PostDataToMDE(token, ranQueriesEndpoint, ranQueriesQueryParams, sentinel, "MdeExecutedQueries", files, splunk, debug, hostname)
+		if err := cmd.PostDataToMDE(token, ranQueriesEndpoint, ranQueriesQueryParams, sentinel, "MdeExecutedQueries", files, splunk, debug, hostname); err != nil {
+			log.Fatalln(err)
+		}
 	}
 
 	if alertServiceSettings {
@@ -172,7 +190,9 @@ func main() {
 		alertServiceSettingsEndpoint := "/api/ine/alertsapiservice/workloads/disabled"
 		alertServiceSettingsQueryParams := "?includeDetails=true"
 		hostname := getM365XDRDomainName(location, alertServiceSettingsEndpoint)
-		cmd.GetDataFromMDEAPI(token, alertServiceSettingsEndpoint, alertServiceSettingsQueryParams, sentinel, "M365AlertServiceSettings", files, splunk, debug, hostname)
+		if err := cmd.GetDataFromMDEAPI(token, alertServiceSettingsEndpoint, alertServiceSettingsQueryParams, sentinel, "M365AlertServiceSettings", files, splunk, debug, hostname); err != nil {
+			log.Fatalln(err)
+		}
 	}
 
 	if dataExportSettings {
@@ -181,7 +201,9 @@ func main() {
 		dataExportSettingsEndpoint := "/api/dataexportsettings"
 		dataExportSettingsQueryParams := ""
 		hostname := getM365XDRDomainName(location, dataExportSettingsEndpoint)
-		cmd.GetDataFromMDEAPI(token, dataExportSettingsEndpoint, dataExportSettingsQueryParams, sentinel, "M365DataExportSettings", files, splunk, debug, hostname)
+		if err := cmd.GetDataFromMDEAPI(token, dataExportSettingsEndpoint, dataExportSettingsQueryParams, sentinel, "M365DataExportSettings", files, splunk, debug, hostname); err != nil {
+			log.Fatalln(err)
+		}
 	}
 }
 

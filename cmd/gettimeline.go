@@ -48,8 +48,7 @@ func GetTimelineData(accessToken string, endpoint string, queryParams string, se
 		}
 
 		if resp.StatusCode != http.StatusOK {
-			fmt.Println("request failed with status code %d", resp.StatusCode)
-			return nil, err
+			return nil, fmt.Errorf("request failed with status code %d", resp.StatusCode)
 		}
 
 		body, err := io.ReadAll(resp.Body)
@@ -83,13 +82,17 @@ func GetTimelineData(accessToken string, endpoint string, queryParams string, se
 		filename := runTime + "-" + table + ".json"
 		data, _ := json.MarshalIndent(timelineData.Items, "", "  ")
 		log.Printf("Writing %d events to %s\n", len(timelineData.Items), filename)
-		os.WriteFile(filename, data, 0644)
+		if err := os.WriteFile(filename, data, 0644); err != nil {
+			return nil, err
+		}
 	}
 
 	if splunk {
 		log.Printf("Sending %d events to Splunk\n", len(timelineData.Items))
 		jsondata, _ := json.Marshal(timelineData.Items)
-		PostToSplunk(jsondata, table)
+		if err := PostToSplunk(jsondata, table); err != nil {
+			return nil, err
+		}
 	}
 
 	if sentinel {
@@ -111,7 +114,9 @@ func GetTimelineData(accessToken string, endpoint string, queryParams string, se
 			if !json.Valid(body) {
 				return nil, fmt.Errorf("invalid JSON in batch %d", i)
 			}
-			SendToSentinel(body, table)
+			if err = SendToSentinel(body, table); err != nil {
+				return nil, err
+			}
 		}
 	}
 

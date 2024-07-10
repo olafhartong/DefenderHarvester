@@ -1,4 +1,4 @@
-module defenderharvester
+module github.com/olafhartong/defenderharvester
 
 go 1.21.1
 

@@ -59,10 +59,10 @@ func GetDataFromMDE(accessToken string, endpoint string, queryParams string, sen
 
 	if debug {
 		var prettyJSON bytes.Buffer
-		error := json.Indent(&prettyJSON, body, "", "\t")
-		if error != nil {
-			log.Println("JSON parse error: ", error)
-			return error
+		err = json.Indent(&prettyJSON, body, "", "\t")
+		if err != nil {
+			log.Println("JSON parse error: ", err)
+			return err
 		}
 		fmt.Printf("%s\n", prettyJSON.Bytes())
 	}

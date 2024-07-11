@@ -26,6 +26,7 @@ func main() {
 	var machineActions bool
 	var customDetections bool
 	var featureSettings bool
+	var suppressionRules bool
 	var machineGroups bool
 	var connectedApps bool
 	var executedQueries bool
@@ -35,7 +36,7 @@ func main() {
 	var accessToken string
 	var token string
 	flag.IntVar(&lookback, "lookback", 1, "set the number of hours to query from the applicable sources")
-	flag.StringVar(&location, "location", "wdatpprd-weu", "set the Azure region to query, default is wdatpprd-weu. Get yours via the dev tools in your browser, see the blog in the README.")
+	flag.StringVar(&location, "location", "weu", "set the Azure region to query, default is weu. Get yours via the dev tools in your browser, see the blog or in the README.")
 	flag.BoolVar(&sentinel, "sentinel", false, "enable sending to Sentinel")
 	flag.BoolVar(&splunk, "splunk", false, "enable sending to Splunk")
 	flag.BoolVar(&files, "files", false, "enable writing to files")
@@ -45,6 +46,7 @@ func main() {
 	flag.BoolVar(&machineActions, "machineactions", false, "enable querying the MachineActions / LiveResponse actions")
 	flag.BoolVar(&customDetections, "customdetections", false, "enable querying the Custom Detection state")
 	flag.BoolVar(&featureSettings, "featuresettings", false, "enable querying the Advanced Feature Settings")
+	flag.BoolVar(&suppressionRules, "suppressionrules", false, "enable querying the Suppression rule Settings")
 	flag.BoolVar(&machineGroups, "machinegroups", false, "enable querying the Machine Groups")
 	flag.BoolVar(&connectedApps, "connectedapps", false, "enable querying the Connected App Statistics")
 	flag.BoolVar(&executedQueries, "executedqueries", false, "enable querying the Executed Queries")
@@ -62,7 +64,7 @@ func main() {
 	fmt.Println("  '?@@@@@@#%%%%%%%%%%#@@@@@@?'")
 	fmt.Println("   ?+';@@@@^^@@@@@@^^@@@+'+?")
 	fmt.Println("      ;@@@'  '@@@@'  '@@@+")
-	fmt.Println("       ;#@@@-@@@@@@-@@@%;	DefenderHarvester v0.9.5 - by Olaf Hartong")
+	fmt.Println("       ;#@@@-@@@@@@-@@@%;	DefenderHarvester v0.9.9 - by Olaf Hartong")
 	fmt.Println("        .?@@@@----@@@@?.	 ↳ Collects interesting events from MDE/M365D, of which")
 	fmt.Println("          '+?%@@@@%?+'		   most are sadly only available on the ServiceAPI :|")
 	fmt.Println("              .;;.")
@@ -83,8 +85,9 @@ func main() {
 	if schema {
 		log.Println("Retrieving MDE schema reference ...")
 		schemaEndpoint := "/api/ine/huntingservice/schema"
+		APIlocation := "m365d-hunting-api-prd-" + location
 		schemaQueryParams := ""
-		hostname := getM365XDRDomainName(location, schemaEndpoint)
+		hostname := getM365XDRDomainName(APIlocation, schemaEndpoint)
 		if err := cmd.GetDataFromMDE(token, schemaEndpoint, schemaQueryParams, false, "MdeSchemaReference", true, false, debug, hostname); err != nil {
 			log.Fatalln(err)
 		}
@@ -105,7 +108,8 @@ func main() {
 		log.Printf("Depending on the lookback, this can take a while, get some %s", "☕")
 		TLEndpoint := fmt.Sprintf("/api/detection/experience/timeline/machines/%s/events/?machineId=%s&doNotUseCache=false&forceUseCache=false&fromDate=%s&pageSize=1000", machineID, machineID, fromURL)
 		TLQueryParams := ""
-		hostname := getM365XDRDomainName(location, TLEndpoint)
+		APIlocation := "wdatpprd-" + location
+		hostname := getM365XDRDomainName(APIlocation, TLEndpoint)
 		if _, err := cmd.GetTimelineData(token, TLEndpoint, TLQueryParams, sentinel, "MdeTimeline", true, from, splunk, debug, hostname); err != nil {
 			log.Fatalln(err)
 		}
@@ -115,8 +119,9 @@ func main() {
 	if machineActions {
 		log.Println("Retrieving Action Center History ...")
 		ACendpoint := "/api/autoir/actioncenterui/history-actions"
-		ACqueryParams := fmt.Sprintf("/?useMtpApi=true&fromDate=%s&toDate=%s&sortByField=eventTime&sortOrder=Descending", fromURL, nowURL)
-		hostname := getM365XDRDomainName(location, ACendpoint)
+		ACqueryParams := fmt.Sprintf("/?useMtpApi=true&pageIndex=1&fromDate=%s&toDate=%s&sortByField=eventTime&sortOrder=Descending", fromURL, nowURL)
+		APIlocation := "m365d-autoir-ac-prd-" + location
+		hostname := getM365XDRDomainName(APIlocation, ACendpoint)
 		if err := cmd.GetDataFromMDE(token, ACendpoint, ACqueryParams, sentinel, "MdeMachineActions", files, splunk, debug, hostname); err != nil {
 			log.Fatalln(err)
 		}
@@ -126,7 +131,9 @@ func main() {
 		MAquery := fmt.Sprintf(" ge %s", from)
 		escapedQuery := url.QueryEscape(MAquery)
 		MAQueryParams := strings.ReplaceAll(escapedQuery, "+", "%20")
-		hostname = getM365XDRDomainName(location, MAEndpoint)
+		APIlocation = "wdatpprd-" + location
+		hostname = getM365XDRDomainName(APIlocation, MAEndpoint)
+		//TODO: fix the location for this one
 		if err := cmd.GetDataFromMDEAPI(token, MAEndpoint, MAQueryParams, sentinel, "MdeMachineActionsApi", files, splunk, debug, hostname); err != nil {
 			log.Fatalln(err)
 		}
@@ -135,8 +142,9 @@ func main() {
 	if customDetections {
 		log.Println("Retrieving Custom Detection state ...")
 		CDendpoint := "/api/ine/huntingservice/rules"
-		CDqueryParams := "?pageSize=1000"
-		hostname := getM365XDRDomainName(location, CDendpoint)
+		CDqueryParams := "?pageIndex=1&pageSize=1000&sortOrder=Descending"
+		APIlocation := "m365d-hunting-api-prd-" + location
+		hostname := getM365XDRDomainName(APIlocation, CDendpoint)
 		if err := cmd.GetDataFromMDE(token, CDendpoint, CDqueryParams, sentinel, "MdeCustomDetectionState", files, splunk, debug, hostname); err != nil {
 			log.Fatalln(err)
 		}
@@ -144,10 +152,21 @@ func main() {
 
 	if featureSettings {
 		log.Println("Retrieving Advanced Feature Settings ...")
-		// hostname default: wdatpprd-eu3.securitycenter.windows.com
 		tenantEndpoint := "/api/settings/GetAdvancedFeaturesSetting"
 		tenantQueryParams := ""
-		hostname := getM365XDRDomainName(location, tenantEndpoint)
+		APIlocation := "wdatpprd-" + location
+		hostname := getM365XDRDomainName(APIlocation, tenantEndpoint)
+		if err := cmd.GetDataFromMDE(token, tenantEndpoint, tenantQueryParams, sentinel, "MdeAdvancedFeatureSettings", files, splunk, debug, hostname); err != nil {
+			log.Fatalln(err)
+		}
+	}
+
+	if suppressionRules {
+		log.Println("Retrieving Advanced Feature Settings ...")
+		tenantEndpoint := "/api/ine/suppressionrulesservice/suppressionRules"
+		tenantQueryParams := ""
+		APIlocation := "wdatpprd-" + location
+		hostname := getM365XDRDomainName(APIlocation, tenantEndpoint)
 		if err := cmd.GetDataFromMDE(token, tenantEndpoint, tenantQueryParams, sentinel, "MdeAdvancedFeatureSettings", files, splunk, debug, hostname); err != nil {
 			log.Fatalln(err)
 		}
@@ -157,7 +176,8 @@ func main() {
 		log.Println("Retrieving Machine Groups ...")
 		settingsEndpoint := "/rbac/machine_groups"
 		settingsQueryParams := ""
-		hostname := getM365XDRDomainName(location, settingsEndpoint)
+		APIlocation := "wdatpprd-" + location
+		hostname := getM365XDRDomainName(APIlocation, settingsEndpoint)
 		if err := cmd.GetDataFromMDE(token, settingsEndpoint, settingsQueryParams, sentinel, "MdeMachineGroups", files, splunk, debug, hostname); err != nil {
 			log.Fatalln(err)
 		}
@@ -167,7 +187,8 @@ func main() {
 		log.Println("Retrieving Connected App Statistics ...")
 		conAppsEndpoint := "/api/cloud/portal/apps/all"
 		conAppsQueryParams := ""
-		hostname := getM365XDRDomainName(location, conAppsEndpoint)
+		APIlocation := "wdatpprd-" + location
+		hostname := getM365XDRDomainName(APIlocation, conAppsEndpoint)
 		if err := cmd.GetDataFromMDE(token, conAppsEndpoint, conAppsQueryParams, sentinel, "MdeConnectedAppStats", files, splunk, debug, hostname); err != nil {
 			log.Fatalln(err)
 		}
@@ -178,7 +199,8 @@ func main() {
 		ranQueriesEndpoint := "/api/ine/huntingservice/reports"
 		query := fmt.Sprintf(`{"startTime":"%s","endTime":"%s"}`, from, now)
 		ranQueriesQueryParams := []byte(query)
-		hostname := getM365XDRDomainName(location, ranQueriesEndpoint)
+		APIlocation := "m365d-hunting-api-prd-" + location
+		hostname := getM365XDRDomainName(APIlocation, ranQueriesEndpoint)
 		if err := cmd.PostDataToMDE(token, ranQueriesEndpoint, ranQueriesQueryParams, sentinel, "MdeExecutedQueries", files, splunk, debug, hostname); err != nil {
 			log.Fatalln(err)
 		}
@@ -189,7 +211,8 @@ func main() {
 		// hostname default: m365duseprd-weu3.securitycenter.windows.com
 		alertServiceSettingsEndpoint := "/api/ine/alertsapiservice/workloads/disabled"
 		alertServiceSettingsQueryParams := "?includeDetails=true"
-		hostname := getM365XDRDomainName(location, alertServiceSettingsEndpoint)
+		APIlocation := "wdatpprd-" + location
+		hostname := getM365XDRDomainName(APIlocation, alertServiceSettingsEndpoint)
 		if err := cmd.GetDataFromMDEAPI(token, alertServiceSettingsEndpoint, alertServiceSettingsQueryParams, sentinel, "M365AlertServiceSettings", files, splunk, debug, hostname); err != nil {
 			log.Fatalln(err)
 		}
@@ -200,7 +223,8 @@ func main() {
 		// location default: api-eu.securitycenter.windows.com
 		dataExportSettingsEndpoint := "/api/dataexportsettings"
 		dataExportSettingsQueryParams := ""
-		hostname := getM365XDRDomainName(location, dataExportSettingsEndpoint)
+		APIlocation := "wdatpprd-" + location
+		hostname := getM365XDRDomainName(APIlocation, dataExportSettingsEndpoint)
 		if err := cmd.GetDataFromMDEAPI(token, dataExportSettingsEndpoint, dataExportSettingsQueryParams, sentinel, "M365DataExportSettings", files, splunk, debug, hostname); err != nil {
 			log.Fatalln(err)
 		}

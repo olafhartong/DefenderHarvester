@@ -133,7 +133,6 @@ func main() {
 		MAQueryParams := strings.ReplaceAll(escapedQuery, "+", "%20")
 		APIlocation = "wdatpprd-" + location
 		hostname = getM365XDRDomainName(APIlocation, MAEndpoint)
-		//TODO: fix the location for this one
 		if err := cmd.GetDataFromMDEAPI(token, MAEndpoint, MAQueryParams, sentinel, "MdeMachineActionsApi", files, splunk, debug, hostname); err != nil {
 			log.Fatalln(err)
 		}

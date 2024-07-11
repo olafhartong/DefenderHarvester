@@ -49,7 +49,7 @@ func GetDataFromMDE(accessToken string, endpoint string, queryParams string, sen
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("request failed with status code %d", resp.StatusCode)
+		return fmt.Errorf("request failed with status code %s", resp.Status)
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -180,7 +180,7 @@ func GetDataFromMDEAPI(accessToken string, endpoint string, queryParams string, 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("request failed with status code %d", resp.StatusCode)
+		return fmt.Errorf("request failed with status code %s", resp.Status)
 	}
 
 	body, err := io.ReadAll(resp.Body)

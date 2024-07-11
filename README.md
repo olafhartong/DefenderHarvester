@@ -1,5 +1,5 @@
 [![license](https://img.shields.io/github/license/olafhartong/DefenderHarvester.svg?style=flat-square)](https://github.com/olafhartong/DefenderHarvester/blob/main/LICENSE)
-![Maintenance](https://img.shields.io/maintenance/yes/2023.svg?style=flat-square)
+![Maintenance](https://img.shields.io/maintenance/yes/2024.svg?style=flat-square)
 [![Twitter](https://img.shields.io/twitter/follow/olafhartong.svg?style=social&label=Follow)](https://twitter.com/olafhartong)
 
 
@@ -39,6 +39,12 @@ export SentinelWorkspaceID=<workspace id>
 export SentinelSharedKey="<sentinel shared key>"
 ```
 
+or in PowerShell:
+```powershell
+$env:SentinelWorkspaceID="<workspace id>"
+$env:Sentinel
+```
+
 For Splunk you need create an HTTP Event Collector (HEC) endpoint and the following environment variables set:
 
 ```bash
@@ -46,44 +52,54 @@ export SplunkUri=<splunk host>
 export SplunkToken=<hec token>
 ```
 
+or in PowerShell:
+```powershell
+$env:SplunkUri="<splunk host>"
+$env:Splunk
 ```
-Usage of C:\Users\fabia\git\DefenderHarvester\defenderharvester.exe:
+
+# Usage
+
+```
+Usage of defenderharvester.exe:
   -accesstoken string
-        bring your own access token
+    	bring your own access token
   -alertservicesettings
-        enable querying the M365 XDR Alert Service Settings
+    	enable querying the M365 XDR Alert Service Settings
   -connectedapps
-        enable querying the Connected App Statistics
+    	enable querying the Connected App Statistics
   -customdetections
-        enable querying the Custom Detection state
+    	enable querying the Custom Detection state
   -dataexportsettings
-        enable querying the M365 XDR Data Export Settings
+    	enable querying the M365 XDR Data Export Settings
   -debug
-        Provide debugging output
+    	Provide debugging output
   -executedqueries
-        enable querying the Executed Queries
+    	enable querying the Executed Queries
   -featuresettings
-        enable querying the Advanced Feature Settings
+    	enable querying the Advanced Feature Settings
   -files
-        enable writing to files
+    	enable writing to files
   -location string
-        set the Azure region to query, default is wdatpprd-weu. Get yours via the dev tools in your browser, see the blog in the README. (default "wdatpprd-weu")
+    	set the Azure region to query, default is weu. Get yours via the dev tools in your browser, see the blog or in the README. (default "weu")
   -lookback int
-        set the number of hours to query from the applicable sources (default 1)
+    	set the number of hours to query from the applicable sources (default 1)
   -machineactions
-        enable querying the MachineActions / LiveResponse actions
+    	enable querying the MachineActions / LiveResponse actions
   -machinegroups
-        enable querying the Machine Groups
+    	enable querying the Machine Groups
   -machineid string
-        set the MachineId to query the timeline for
+    	set the MachineId to query the timeline for
   -schema
-        write the MDE schema reference to a file - will never write to Sentinel
+    	write the MDE schema reference to a file - will never write to Sentinel
   -sentinel
-        enable sending to Sentinel
+    	enable sending to Sentinel
   -splunk
-        enable sending to Splunk
+    	enable sending to Splunk
+  -suppressionrules
+    	enable querying the Suppression rule Settings
   -timeline
-        gather the Timeline for a MachineId (requires -machineid and -lookback)
+    	gather the Timeline for a MachineId (requires -machineid and -lookback)
 ```
 
 ## Get the MDE Schema reference in JSON
@@ -99,10 +115,11 @@ You can get the following events from MDE:
 - (automated) LiveResponse events (MdeMachineActions)
 - The state of your custom detections (MdeCustomDetectionState)
 - Advanced feature settings (MdeAdvancedFeatureSettings)
+- Suppression rules (MdeSuppressionRules)
 - Configured Machine Groups (MdeMachineGroups)
 - Connected App Registrations, and their use (MdeConnectedAppStats)
 - All executed queries Scheduled/API/Portal (MdeExecutedQueries)
-- Timeline events for devices (MdeTimelineEvens)
+- Timeline events for devices (MdeTimelineEvents)
 - The schema reference
 
 This can be collected into files with the `-files` flag, or sent to Sentinel with the `-sentinel` flag, or both.

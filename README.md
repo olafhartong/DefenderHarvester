@@ -6,6 +6,8 @@
 ![Defender Harvester](defenderharvester-logo.png)
 # Defender Harvester
 
+## NOTICE: Microsoft has added additional protection on the service APIs this tool is leveraging. This pervents us from bypassing the API proxy and essentially kills this tool for now. I'm investigating a workaround.
+
 This tools tries to expose a lot of telemetry that is not easily accessible in any searchable form.
 
 Sadly this not available over the publicly supported API, so this tool uses the internal API to get the data. Also the Unified Audit logs does not have this data, so this tool is the only way to get it. (that I am aware of)
@@ -146,3 +148,4 @@ Get-AzureToken -Client Custom -ClientID 04b07795-8ddb-461a-bbee-02f9e1bf7b46 -Sc
 ./defenderharvester.exe -location wdatpprd-weu3 -debug -accesstoken $response.access_token -schema
 
 ```
+
